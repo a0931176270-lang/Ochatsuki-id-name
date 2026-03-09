@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    
+    <title>Gia</title>
+    
+    <link rel="icon" href="../logo-米色背.png" type="image/png">
+    <link rel="apple-touch-icon" href="../logo-米色背.png">
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    
+    <style>
+        /* 基礎版面設定：改用 100dvh 完美適應 iOS 動態網址列 */
+        html, body {
+            width: 100%;
+            height: 100dvh; 
+            margin: 0;
+            padding: 0;
+            background-color: #ffffff; 
+            -webkit-text-size-adjust: 100%; 
+            overflow: hidden; 
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Microsoft JhengHei', sans-serif;
+            display: flex;
+            justify-content: center; 
+            align-items: center; 
+            font-size: 1em;
+        }
+
+        /* 頂部區域保持不變 */
+        .top-header {
+            position: fixed; 
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: calc(60px + env(safe-area-inset-top)); 
+            padding-top: env(safe-area-inset-top);
+            background-color: #ffffff; 
+            z-index: 1000; 
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05); 
+            transition: background-color 0.4s ease, box-shadow 0.4s ease; 
+            box-sizing: border-box;
+        }
+
+        .top-header.scrolled {
+            background-color: #1a1a1a; 
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3); 
+        }
+
+        .header-logo {
+            position: absolute;
+            top: calc(8px + env(safe-area-inset-top)); 
+            left: 15px;
+            height: 40px; 
+            width: 40px;  
+            object-fit: contain; 
+        }
+
+        /* 🌟 核心修改：名片內容容器極限壓縮 */
+        .card-container {
+            width: 100%;
+            max-width: 420px; 
+            margin-top: calc(50px + env(safe-area-inset-top)); 
+            padding: 0 25px;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        /* 大頭貼微調縮小 */
+        img.profile {
+            display: block;
+            margin: 0 0 15px 0; 
+            width: 90px;
+            height: 90px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid #f0f0f0;
+        }
+
+        /* 文字資訊樣式極限壓縮 */
+        .name {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 4px;
+            color: #222;
+            text-align: left; 
+        }
+        .title {
+            font-size: 15px;
+            color: #333; 
+            margin-bottom: 2px;
+            text-align: left; 
+        }
+        .tax-id {
+            font-size: 15px;
+            color: #333; 
+            margin-bottom: 15px; 
+            text-align: left; 
+        }
+
+        /* 聯絡資訊列表樣式極限壓縮 */
+        .item {
+            display: flex;
+            align-items: center;
+            margin: 6px 0; 
+        }
+        .fa-icon, .material-icons {
+            width: 30px; 
+            height: 30px;
+            display: inline-flex;
+            justify-content: center;
+            align-items: center;
+            border: 1px solid #f0f0f0;
+            border-radius: 50%;
+            margin-right: 12px;
+            font-size: 15px;
+            background-color: #fafafa;
+            flex-shrink: 0; 
+        }
+
+        .fa-line { color: #00c300; }
+        .icon-email { color: #ea4335; }
+        .icon-mobile { color: #333; }
+        .icon-phone { color: #34a853; }
+        .icon-fax { color: #555; }
+        .icon-map { color: #ea4335; }
+        .icon-website { color: #0066cc; }
+
+        a, .text-black {
+            color: #0066cc;
+            text-decoration: none;
+            font-size: 15px; 
+            word-break: break-word; 
+        }
+        .text-black { color: #333; }
+        a:hover {
+            text-decoration: underline;
+            color: #004c99;
+        }
+
+        /* 📱 🌟 iPhone SE / mini 終極窄螢幕對策 */
+        @media (max-height: 700px) {
+            .card-container {
+                margin-top: calc(40px + env(safe-area-inset-top));
+                padding: 0 20px;
+            }
+            img.profile {
+                width: 75px;
+                height: 75px;
+                margin-bottom: 10px;
+            }
+            .name { font-size: 20px; }
+            .title, .tax-id, a, .text-black { font-size: 14px; }
+            .item { margin: 4px 0; }
+            .fa-icon, .material-icons {
+                width: 28px;
+                height: 28px;
+                font-size: 14px;
+                margin-right: 10px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="top-header" id="main-header">
+        <img src="../logo-群組-管理部.png" alt="茶月Logo" class="header-logo">
+    </div>
+
+    <div class="card-container">
+        
+        <img src="profile.png" class="profile" alt="我的照片">
+        
+        <div class="name">Gia</div>
+        <div class="title">茶月食品有限公司</div>
+        <div class="tax-id">統編：24406873</div>
+        
+        <div class="item">
+            <i class="fab fa-line fa-icon"></i>
+            <a href="https://line.me/ti/p/3jNhUVztLS" target="_blank">LINE id</a>
+        </div>
+        
+        <div class="item">
+            <i class="fab fa-google fa-icon icon-email"></i>
+            <a href="mailto:ochatsuki@gmail.com">ochatsuki@gmail.com</a>
+        </div>
+        
+        <div class="item">
+            <i class="fas fa-mobile-alt fa-icon icon-mobile"></i>
+            <a href="tel:+886988080417">phone</a>
+        </div>
+        
+        <div class="item">
+            <i class="fas fa-phone fa-icon icon-phone"></i>
+            <a href="tel:+88652761512">TEL</a>
+        </div>
+        
+        <div class="item">
+            <i class="fas fa-fax fa-icon icon-fax"></i>
+            <a href="fax:+88652760519">FAX</a>
+        </div>
+        
+        <div class="item">
+            <i class="fas fa-map-marker-alt fa-icon icon-map"></i>
+            <a href="https://maps.google.com/?q=嘉義市東區保順路327號" target="_blank">嘉義市東區保順路 327 號</a>
+        </div>
+        
+        <div class="item">
+            <i class="material-icons icon-website">language</i>
+            <a href="https://ochatsuki.com.tw" target="_blank">ochatsuki.com.tw</a>
+        </div>
+
+    </div>
+
+    <script>
+        window.addEventListener('scroll', function() {
+            const header = document.getElementById('main-header');
+            if (window.scrollY > 10) {
+                header.classList.add('scrolled');
+            } else {
+                header.classList.remove('scrolled'); 
+            }
+        });
+    </script>
+</body>
+</html>
