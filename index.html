@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    
+    <title>名片載入中...</title>
+    
+    <link rel="icon" href="../logo-米色背.png" type="image/png">
+    <link rel="apple-touch-icon" href="../logo-米色背.png">
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    
+    <style>
+        /* 基礎版面設定 */
+        html, body {
+            width: 100%; height: 100dvh; margin: 0; padding: 0;
+            background-color: #ffffff; -webkit-text-size-adjust: 100%; overflow: hidden; 
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            display: flex; justify-content: center; align-items: center; font-size: 1em;
+        }
+
+        /* 頂部區域 */
+        .top-header {
+            position: fixed; top: 0; left: 0; width: 100%;
+            height: calc(60px + env(safe-area-inset-top)); padding-top: env(safe-area-inset-top);
+            background-color: #ffffff; z-index: 1000; box-shadow: 0 2px 10px rgba(0,0,0,0.05); 
+            transition: background-color 0.4s ease, box-shadow 0.4s ease; box-sizing: border-box;
+        }
+        .top-header.scrolled {
+            background-color: #1a1a1a; box-shadow: 0 4px 15px rgba(0,0,0,0.3); 
+        }
+        .header-logo {
+            position: absolute; top: calc(8px + env(safe-area-inset-top)); left: 15px;
+            height: 40px; width: 40px; object-fit: contain; 
+        }
+
+        /* 名片內容容器 */
+        .card-container {
+            width: 100%; max-width: 420px; 
+            margin-top: calc(50px + env(safe-area-inset-top)); padding: 0 25px;
+            box-sizing: border-box; display: none; /* 預設隱藏，資料載入後顯示 */
+            flex-direction: column; justify-content: center;
+        }
+
+        /* 讀取中畫面 */
+        #loading-screen {
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            color: #666; font-size: 18px; font-weight: bold;
+        }
+
+        /* 文字樣式 */
+        .name { font-size: 26px; font-weight: bold; margin-bottom: 20px; color: #222; text-align: left; }
+
+        /* 聯絡資訊列表 */
+        .item { display: flex; align-items: center; margin: 10px 0; }
+        .fa-icon {
+            width: 35px; height: 35px; display: inline-flex; justify-content: center; align-items: center;
+            border: 1px solid #f0f0f0; border-radius: 50%; margin-right: 15px; font-size: 18px;
+            background-color: #fafafa; flex-shrink: 0; 
+        }
+        .fa-line { color: #00c300; }
+        .icon-email { color: #ea4335; }
+        .icon-mobile { color: #333; }
+
+        a, .text-black { color: #0066cc; text-decoration: none; font-size: 16px; word-break: break-word; }
+        a:hover { text-decoration: underline; color: #004c99; }
+
+        /* 手機極窄螢幕對策 */
+        @media (max-height: 700px) {
+            .card-container { margin-top: calc(40px + env(safe-area-inset-top)); padding: 0 20px; }
+            .name { font-size: 22px; margin-bottom: 15px; }
+            a { font-size: 15px; }
+            .item { margin: 8px 0; }
+            .fa-icon { width: 32px; height: 32px; font-size: 16px; margin-right: 12px; }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="top-header" id="main-header">
+        <img src="../logo-群組-管理部.png" alt="茶月Logo" class="header-logo" onerror="this.src=''">
+    </div>
+
+    <div id="loading-screen">
+        <i class="fas fa-spinner fa-spin" style="font-size: 30px; margin-bottom: 15px; color: #3498db;"></i>
+        <div>正在雲端核對資料...</div>
+    </div>
+
+    <div class="card-container" id="main-card">
+        
+        <div class="name" id="data-name"></div>
+        
+        <div class="item" id="box-line">
+            <i class="fab fa-line fa-icon"></i>
+            <a href="#" target="_blank" id="data-line"></a>
+        </div>
+        
+        <div class="item" id="box-email">
+            <i class="fab fa-google fa-icon icon-email"></i>
+            <a href="#" id="data-email"></a>
+        </div>
+        
+        <div class="item" id="box-mobile">
+            <i class="fas fa-mobile-alt fa-icon icon-mobile"></i>
+            <a href="#" id="data-mobile"></a>
+        </div>
+
+    </div>
+
+    <script>
+        // ==========================================
+        // 🚨 指揮官，請把您的 Google Sheet CSV 網址貼在下面雙引號內：
+        const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQDhshinnw0lMer-KZg0k8XB9duzINgDAIW3zieKuxNIv6kTvC6ACa1qDruDp41MDcRC8DEfh6j_qs8/pub?output=csv";
+        // ==========================================
+
+        window.addEventListener('scroll', function() {
+            const header = document.getElementById('main-header');
+            if (window.scrollY > 10) {
+                header.classList.add('scrolled');
+            } else {
+                header.classList.remove('scrolled'); 
+            }
+        });
+
+        // 解析 CSV 格式的萬用函數
+        function parseCSV(text) {
+            const rows = []; let currentRow = []; let currentCell = ''; let insideQuotes = false;
+            for (let i = 0; i < text.length; i++) {
+                const char = text[i], nextChar = text[i+1];
+                if (char === '"' && insideQuotes && nextChar === '"') { currentCell += '"'; i++; } 
+                else if (char === '"') { insideQuotes = !insideQuotes; } 
+                else if (char === ',' && !insideQuotes) { currentRow.push(currentCell); currentCell = ''; } 
+                else if ((char === '\n' || char === '\r') && !insideQuotes) {
+                    if (char === '\r' && nextChar === '\n') i++;
+                    currentRow.push(currentCell); rows.push(currentRow); currentRow = []; currentCell = '';
+                } 
+                else { currentCell += char; }
+            }
+            if (currentCell !== '' || currentRow.length > 0) { currentRow.push(currentCell); rows.push(currentRow); }
+            return rows;
+        }
+
+        async function fetchAndRenderCard() {
+            // 1. 抓取網址的 ID
+            const urlParams = new URLSearchParams(window.location.search);
+            let targetId = urlParams.get('id');
+
+            // 支援路徑抓取 (如果網址是 domain.com/Kris-Lin)
+            if (!targetId) {
+                const pathParts = window.location.pathname.split('/').filter(p => p && !p.endsWith('.html'));
+                if (pathParts.length > 0) {
+                    targetId = pathParts[pathParts.length - 1];
+                }
+            }
+
+            if (!targetId) {
+                document.getElementById('loading-screen').innerHTML = '<h2>⚠️ 網址缺少員工 ID 參數</h2><p>請使用類似 ?id=Kris-Lin 的網址</p>';
+                return;
+            }
+
+            try {
+                // 2. 去 Google Sheet 抓帳本
+                const response = await fetch(CSV_URL);
+                const csvText = await response.text();
+                const rows = parseCSV(csvText);
+                
+                if (rows.length < 2) throw new Error("資料庫為空");
+
+                // 將表頭轉為物件對應，不怕欄位換順序
+                const headers = rows[0].map(h => h.trim());
+                let foundData = null;
+
+                for (let i = 1; i < rows.length; i++) {
+                    const rowObj = {};
+                    headers.forEach((header, index) => {
+                        rowObj[header] = rows[i][index] ? rows[i][index].trim() : '';
+                    });
+
+                    // 🚨 尋找欄位1：英文ID
+                    if (rowObj['英文ID'] === targetId) {
+                        foundData = rowObj;
+                        break;
+                    }
+                }
+
+                if (foundData) {
+                    // 3. 把資料印到畫面上
+                    document.title = foundData['姓名'] || '茶月名片';
+                    
+                    document.getElementById('data-name').innerText = foundData['姓名'] || '';
+
+                    // 處理有填寫才顯示的聯絡資訊欄位
+                    function fillItem(boxId, textId, textVal, hrefVal) {
+                        if (textVal) {
+                            const linkEl = document.getElementById(textId);
+                            linkEl.innerText = textVal;
+                            linkEl.href = hrefVal;
+                        } else {
+                            document.getElementById(boxId).style.display = 'none'; // 沒資料就隱藏整行
+                        }
+                    }
+
+                    // 填入對應欄位
+                    fillItem('box-line', 'data-line', foundData['Line ID'], foundData['LINE行動條碼連結']);
+                    fillItem('box-email', 'data-email', foundData['信箱'], `mailto:${foundData['信箱']}`);
+                    fillItem('box-mobile', 'data-mobile', foundData['手機'], `tel:${(foundData['手機']||'').replace(/-/g,'')}`);
+
+                    // 切換顯示
+                    document.getElementById('loading-screen').style.display = 'none';
+                    document.getElementById('main-card').style.display = 'flex';
+
+                } else {
+                    document.getElementById('loading-screen').innerHTML = `<h2>⚠️ 查無此人</h2><p>找不到 ID 為 [${targetId}] 的資料</p>`;
+                }
+
+            } catch (error) {
+                console.error("讀取錯誤：", error);
+                document.getElementById('loading-screen').innerHTML = '<h2>🚨 連線失敗</h2><p>無法讀取 Google 雲端資料庫</p>';
+            }
+        }
+
+        // 啟動載入程序
+        fetchAndRenderCard();
+    </script>
+</body>
+</html>
