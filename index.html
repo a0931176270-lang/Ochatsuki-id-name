@@ -251,9 +251,12 @@
             }
 
             if (!targetId) {
-                document.getElementById('loading-screen').innerHTML = '<h2>⚠️ 網址缺少員工 ID 參數</h2><p>請使用類似 ?id=Kris-Lin 的網址</p>';
+                document.getElementById('loading-screen').innerHTML = '<h2>⚠️ 網址缺少員工 ID 參數</h2><p>請使用類似 ?id=Kris_Lin 的網址</p>';
                 return;
             }
+
+            // 🌟 核心修改：將網址取得的 ID 中的底線 "_" 替換成空格 " "，準備拿去跟資料庫比對
+            const searchId = targetId.replace(/_/g, ' ');
 
             try {
                 const response = await fetch(CSV_URL);
@@ -271,7 +274,8 @@
                         rowObj[header] = rows[i][index] ? rows[i][index].trim() : '';
                     });
 
-                    if (rowObj['英文ID'] === targetId) {
+                    // 🌟 這裡使用轉換過後的 searchId (例如 "Kris Lin") 來與資料庫的英文 ID 欄位比對
+                    if (rowObj['英文ID'] === searchId) {
                         foundData = rowObj;
                         break;
                     }
@@ -285,8 +289,9 @@
                     }
 
                     const fullName = foundData['姓名'] || '';
-                    document.title = targetId; 
-                    document.getElementById('data-name').innerText = `${targetId} ${fullName}`.trim();
+                    document.title = searchId; // 網頁標題使用還原成空格的 ID
+                    // 🌟 組合姓名時也使用還原後的 searchId
+                    document.getElementById('data-name').innerText = `${searchId} ${fullName}`.trim();
 
                     function fillItem(boxId, textId, textVal, hrefVal) {
                         if (textVal) {
@@ -324,7 +329,7 @@
                     document.getElementById('main-card').style.display = 'flex';
 
                 } else {
-                    document.getElementById('loading-screen').innerHTML = `<h2>⚠️ 查無此人</h2><p>找不到 ID 為 [${targetId}] 的資料</p>`;
+                    document.getElementById('loading-screen').innerHTML = `<h2>⚠️ 查無此人</h2><p>找不到 ID 為 [${searchId}] 的資料</p>`;
                 }
 
             } catch (error) {
